@@ -25,6 +25,11 @@ resource "aws_ebs_volume" "ebs" {
   }
 }
 
+resource "aws_eip" "eip" {
+    instance = "${element(aws_instance.instance.*.id, count.index)}"
+    vpc = true
+}
+
 resource "aws_instance" "instance" {
   ami = "${var.source_ami}"
   instance_type = "${var.ec2_type}"
@@ -38,6 +43,7 @@ resource "aws_instance" "instance" {
     delete_on_termination = true
     volume_size = "${var.ebs_volume_size}"
   }
+
 
   tags {
     Name = "${var.short_name}-${var.role}-${format("%02d", count.index+1)}"
