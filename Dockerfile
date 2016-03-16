@@ -23,13 +23,13 @@ RUN yum install -y python-pip python-crypto openssl openssh-clients && \
 COPY . /mi/
 
 # load user custom setup
-ONBUILD COPY ssl/ /mi/ssl/
-ONBUILD COPY security.yml /mi/security.yml
-ONBUILD COPY mantl.yml /mi/mantl.yml
-ONBUILD COPY *.tf /mi/
+#ONBUILD COPY ssl/ /mi/ssl/
+#ONBUILD COPY security.yml /mi/security.yml
+#ONBUILD COPY mantl.yml /mi/mantl.yml
+#ONBUILD COPY *.tf /mi/
 
 RUN mkdir -p /state
-VOLUME /state /ssh
+VOLUME /ssh
 
 WORKDIR /mi
 CMD ["/mi/docker_launch.sh"]
