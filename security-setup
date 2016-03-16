@@ -153,6 +153,10 @@ cert_opts.add_argument(
     '--no-verify-certificates',
     action='store_true',
     help='skip verifying certificates as part of setup process')
+cert_opts.add_argument(
+    '--dns-alt-cert-names-string',
+    default='',
+    help='extra dns names or ip as a comma separated string to pass to cert generation, eg "DNS:localhost,IP:1.1.1.1"')
 
 # mantlui
 mantlui_opts = parser.add_argument_group(
@@ -465,9 +469,13 @@ class Component(object):
         with self.modify_security() as config:
 	    consul_dns_domain = config['consul_dns_domain']
 
-	common = "%s.service.%s" % (name, consul_dns_domain)
-	san = dict(SAN='DNS:localhost,DNS:*.node.' + consul_dns_domain + ',DNS:*.service.' + consul_dns_domain + ',IP:127.0.0.1')
-
+        if self.args.dns_alt_cert_names_string:
+            dns_alt_cert_names_string = "," + self.args.dns_alt_cert_names_string
+        else:
+            dns_alt_cert_names_string = ""
+    	common = "%s.service.%s" % (name, consul_dns_domain)
+    	san = dict(SAN='DNS:localhost,DNS:*.node.' + consul_dns_domain + 
+                  ',DNS:*.service.' + consul_dns_domain + ',IP:127.0.0.1' + dns_alt_cert_names_string )
         with self.chdir(CERT_PATH):
             if posixpath.exists(key):
                 print('{} key already exists'.format(name))
@@ -999,4 +1007,5 @@ Wrote security settings to {path}. Include them in your Ansible run like this:
 
 
 if __name__ == '__main__':
+    print(parser.parse_args())
     main(parser.parse_args())
