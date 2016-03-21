@@ -47,6 +47,12 @@ resource "aws_instance" "instance" {
   }
 }
 
+resource "aws_eip" "eip" {
+    count = "${var.count}"
+    instance = "${element(aws_instance.instance.*.id, count.index)}"
+    vpc = true
+}
+
 resource "aws_volume_attachment" "instance-lvm-attachment" {
   count = "${var.count}"
   device_name = "xvdh"
@@ -54,7 +60,6 @@ resource "aws_volume_attachment" "instance-lvm-attachment" {
   volume_id = "${element(aws_ebs_volume.ebs.*.id, count.index)}"
   force_detach = true
 }
-
 
 
 
