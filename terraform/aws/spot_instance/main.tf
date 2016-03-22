@@ -1,4 +1,5 @@
 variable "count" {default = "4"}
+variable "count_format" {default = "%02d"}
 variable "iam_profile" {default = "" }
 variable "ec2_type" {default = "m3.medium"}
 variable "ebs_volume_size" {default = "20"} # size is in gigabytes
@@ -12,6 +13,8 @@ variable "source_ami" {}
 variable "security_group_ids" {}
 variable "vpc_subnet_ids" {}
 variable "ssh_username" {default = "centos"}
+variable "spot_type" {default = "one-time"}
+variable "associate_public_ip_address" {default = "false"}
 
 
 resource "aws_ebs_volume" "ebs" {
@@ -21,7 +24,7 @@ resource "aws_ebs_volume" "ebs" {
   type = "gp2"
 
   tags {
-    Name = "${var.short_name}-${var.role}-lvm-${format("%02d", count.index+1)}"
+    Name = "${var.short_name}-${var.role}-lvm-${format(var.count_format, count.index+1)}"
   }
 }
 
@@ -34,7 +37,7 @@ resource "aws_spot_instance_request" "instance" {
   spot_type = "${var.spot_type}"
   vpc_security_group_ids = [ "${split(",", var.security_group_ids)}"]
   key_name = "${var.ssh_key_pair}"
-  associate_public_ip_address = true
+  associate_public_ip_address = "${var.associate_public_ip_address}"
   subnet_id = "${element(split(",", var.vpc_subnet_ids), count.index)}" 
   iam_instance_profile = "${var.iam_profile}"
   root_block_device {
@@ -43,7 +46,7 @@ resource "aws_spot_instance_request" "instance" {
   }
 
   tags {
-    Name = "${var.short_name}-${var.role}-${format("%02d", count.index+1)}"
+    Name = "${var.short_name}-${var.role}-${format(var.count_format, count.index+1)}"
     sshUser = "${var.ssh_username}"
     role = "${var.role}"
     dc = "${var.datacenter}"
@@ -65,13 +68,22 @@ resource "aws_volume_attachment" "instance-lvm-attachment" {
 }
 
 
-
-
 output "ec2_ids" {
   value = "${join(\",\", aws_instance.instance.*.id)}"
 }
 
 output "ec2_ips" {
-  value = "${join(\",\", aws_instance.instance.*.public_ip)}"
+  value = "${join(\",\", aws_eip.instance.*.public_ip)}"
 }
 
+output "ec2_eips" {
+  value = "${join(\",\", aws_eip.eip.*.public_ip)}"
+}
+
+output "dns_domain" {
+  value = "${var.dns_domain}"
+}
+
+output "dns_subdomain" {
+  value = "${var.dns_subdomain}"
+}
