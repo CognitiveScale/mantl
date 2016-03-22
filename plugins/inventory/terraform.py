@@ -35,6 +35,19 @@ def tfstates(root=None):
             if os.path.splitext(name)[-1] == '.tfstate':
                 yield os.path.join(dirpath, name)
 
+def tfvars(root=None):
+    root = root or os.getcwd()
+    for dirpath, _, filenames in os.walk(root):
+        for name in filenames:
+            if name.endswith('.tfvars.json'):
+                yield os.path.join(dirpath, name)
+
+def get_tfvars(filenames):
+    tfvars = {}
+    for filename in filenames:
+        with open(filename, 'r') as json_file:
+            tfvars.update(json.load(json_file))
+    return tfvars
 
 def iterresources(filenames):
     for filename in filenames:
@@ -548,6 +561,7 @@ def query_list(hosts):
             groups[group].setdefault('hosts', [])
             groups[group]['hosts'].append(name)
 
+        attrs.update({'tfvars': get_tfvars(tfvars())})
         meta[name] = attrs
 
     groups['_meta'] = {'hostvars': meta}

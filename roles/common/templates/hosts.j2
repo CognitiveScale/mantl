@@ -2,6 +2,9 @@
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
 {% for item in groups['all'] %}
 {% if hostvars[item].private_ipv4 is defined %}
-{{ hostvars[item].private_ipv4 }} {% if use_host_domain %}{{ item }}.{{ host_domain }}{% endif %} {{ item }}
+{{ hostvars[item].private_ipv4 }} {{ item }} {{ hostvars[item].ansible_fqdn }}
+{% endif %}
+{% if hostvars[item].private_ipv4 is defined %}
+{{ hostvars[item].public_ipv4 }} {{ item }} {{ hostvars[item].ansible_fqdn }}
 {% endif %}
 {% endfor %}

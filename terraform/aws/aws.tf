@@ -121,7 +121,7 @@ resource "aws_ebs_volume" "mi-worker-lvm" {
   type = "gp2"
 
   tags {
-    Name = "${var.short_name}-worker-lvm-${format("%02d", count.index+1)}"
+    Name = "${var.short_name}-worker-lvm-${format("%03d", count.index+1)}"
   }
 }
 
