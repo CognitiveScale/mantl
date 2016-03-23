@@ -3,11 +3,11 @@ set -e
 
 # The IP address of one of your control nodes
 # You can find this by running `./plugins/inventory/terraform.py --hostfile`
-ip=0.0.0.0
+ip=${ip:-0.0.0.0}
 # User for Marathon server (default: admin)"
-username=youruser
+username=${username:-youruser}
 # Password for Marathon server (see 'nginx_admin_password' in security.yml)
-password=yourpass
+password=${password:-yourpass}
 
 # Search the Consul services record to see if a service is available yet
 service_is_available() {
