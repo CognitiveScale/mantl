@@ -3,14 +3,14 @@
 {% for item in groups['all'] %}
 {% if hostvars[item].private_ipv4 is defined %}
 {% if hostvars[item].tfvars is defined %}
-{{ hostvars[item].private_ipv4 }} {% if use_host_domain %}{{ item }}.{{ host_domain }} {{ item }} {{ hostvars[item]['inventory_hostname'] + '.node' + hostvars[item]['tfvars']['dns_subdomain'] + '.' + hostvars[item]['tfvars']['dns_domain'] }} 
+{{ hostvars[item].private_ipv4 }} {% if use_host_domain %}{{ item }}.{{ host_domain }}{% endif %} {{ item }} {{ hostvars[item]['inventory_hostname'] + '.node' + hostvars[item]['tfvars']['dns_subdomain'] + '.' + hostvars[item]['tfvars']['dns_domain'] }} 
 {% else %}
 {{ hostvars[item].private_ipv4 }} {{ item }} 
 {% endif %}
 {% endif %}
 {% if hostvars[item].public_ipv4 is defined %}
 {% if hostvars[item].tfvars is defined %}
-{{ hostvars[item].public_ipv4 }} {% if use_host_domain %}{{ item }}.{{ host_domain }} {{ item }} {{ hostvars[item]['inventory_hostname'] + '.node' + hostvars[item]['tfvars']['dns_subdomain'] + '.' + hostvars[item]['tfvars']['dns_domain'] }}
+{{ hostvars[item].public_ipv4 }} {% if use_host_domain %}{{ item }}.{{ host_domain }}{% endif %} {{ item }} {{ hostvars[item]['inventory_hostname'] + '.node' + hostvars[item]['tfvars']['dns_subdomain'] + '.' + hostvars[item]['tfvars']['dns_domain'] }}
 {% else %}
 {{ hostvars[item].private_ipv4 }} {{ item }} 
 {% endif %}
