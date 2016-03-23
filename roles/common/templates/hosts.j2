@@ -2,9 +2,18 @@
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
 {% for item in groups['all'] %}
 {% if hostvars[item].private_ipv4 is defined %}
-{{ hostvars[item].private_ipv4 }} {{ item }} {{ hostvars[item].ansible_fqdn }}
+{% if hostvars[item].tfvars is defined %}
+{{ hostvars[item].private_ipv4 }} {{ item }} {{ hostvars[item]['inventory_hostname'] + '.node' + hostvars[item]['tfvars']['dns_subdomain'] + '.' + hostvars[item]['tfvars']['dns_domain'] }} 
+{% else %}
+{{ hostvars[item].private_ipv4 }} {{ item }} 
 {% endif %}
-{% if hostvars[item].private_ipv4 is defined %}
-{{ hostvars[item].public_ipv4 }} {{ item }} {{ hostvars[item].ansible_fqdn }}
+{% endif %}
+{% if hostvars[item].public_ipv4 is defined %}
+{% if hostvars[item].tfvars is defined %}
+{{ hostvars[item].public_ipv4 }} {{ item }} {{ hostvars[item]['inventory_hostname'] + '.node' + hostvars[item]['tfvars']['dns_subdomain'] + '.' + hostvars[item]['tfvars']['dns_domain'] }}
+{% else %}
+{{ hostvars[item].private_ipv4 }} {{ item }} 
+{% endif %}
 {% endif %}
 {% endfor %}
+ 
