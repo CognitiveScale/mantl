@@ -60,6 +60,8 @@ resource "aws_volume_attachment" "instance-lvm-attachment" {
 }
 
 
+
+
 output "ec2_ids" {
   value = "${join(\",\", aws_instance.instance.*.id)}"
 }
