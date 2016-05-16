@@ -12,7 +12,19 @@ import yaml
 # Keep an eye on this PR as it would greatly simplify stuff
 # https://github.com/hashicorp/hcl/pull/24/files
 
-
+TFSTATE_SKELETON = {
+        "version": 1,
+        "serial": 0,
+        "modules": [
+          {
+            "path": [
+              "root"
+            ],
+            "outputs": {},
+            "resources": {},
+          }
+        ]
+      }
 
 VPC_FILTERABLE = ['igw', 'nac', 'rt', 'rta', 'sg', 'eip' ]
 TAG_FILTERABLE = ['ec2','vpc','elb','igw','nac','nif','r53z','rt', 'rta', 'sg', 'sn']
@@ -95,18 +107,94 @@ def build_filters(filters, resource):
     tf_filters = ["--filters", json.dumps(tf_filters) ]
     return tf_filters
 
+###########################################################
+# MODULE_MAPPING functions to insert returned tfstate json 
+# into the appropriate module entry
+###########################################################
+def _resource_type(resource_name, module_map):
+    prefix = resource_name.split('.')[0]
+    # translate prefix to aws.tf resource name if
+    # it is in the map, otherwise, make a new one with prefix
+    return module_map.get(prefix, prefix)
 
+def generate_module_template(resource_name, module_map):
+    '''
+    Generate the correct modules sub-dict for tfstate file
+    @param resource: terraforming recognized resource
+    @param resource_name: non-unique identifier eg aws_vpc.myvpc
+    @returns: dict format for terraforming modules
+    '''
+    resource_type = _resource_type(resource_name, module_map)
+    template = {
+            "path": [
+                "root",
+                resource_type
+            ],
+            "outputs": {},
+            "resources": {}
+         }
+    return template
+
+def get_indexed_module(resource_name, modules, module_map):
+    '''
+    Fetch the module entry in modules appropriate for resource_name
+    @param resource_name: resource_name returned by terraforming
+    @param modules: tfstate.modules list of dicts
+    @returns: the matching entry (index, module) from modules or (len(modules), new module template) if not found
+    '''
+    resource_type = _resource_type(resource_name, module_map)
+    for index, module in enumerate(modules):
+        path = module['path']
+        for item in path:
+            if item == resource_type:
+    # return early if we find it
+                return (index, module)
+    # module not found in existing modules, generate new
+    return (len(modules), generate_module_template(resource_name, module_map))
+
+def update_tfstate(new_tfstate, existing_tfstate, module_map):
+    '''
+    Given the raw new_tfstate returned by terraforming and existing tf_state and module_map
+    insert new_tfstate into the correct location in modules
+    @param new_tfstate: raw terraforming tfstate result in path: [root]
+    @param existing_tfstate: existing tfstate json dict
+    @param module_map: mapping from returned resource names to tf groupings
+    @returns: updated tfstate
+    '''
+    print("new_tfstate", new_tfstate)
+    resources = new_tfstate['modules'][0]['resources']
+    print("resources", resources)
+    for resource_name,resource_dict in resources.iteritems():
+        index, module = get_indexed_module(resource_name, existing_tfstate['modules'], module_map)
+
+        # update resources for this module
+        print("resource_name", resource_name)
+        print("type(resource_dict)", type(resource_dict), str(resource_dict))
+        module['resources'][resource_name] = resource_dict
+        if index < len(existing_tfstate['modules']):
+            # over-write existing entry
+            existing_tfstate['modules'][index] = module
+        else:
+            existing_tfstate['modules'].append(module)
+
+    return existing_tfstate
+
+
+###########################################################
+# end MODULE_MAPPING 
+###########################################################
 
 # The great danger is having a resource entry for tf_state without the corresponding tf entry.
 # In this case, terraform apply will match the tf_state to the tf file, i.e. delete the resource.
 # We need to check that we never generate a tf entry without a corresponding tf_state entry.
 
-def generate_artifacts(filter_config):
+def generate_artifacts(config):
 
-    resources = filter_config['resources']
+    filter_config = config['filter_config']
+    resources = config['resources']
     filters = filter_config['filters']
     deployment_id = filter_config['deployment_id']
-    output_root_dir = filter_config['output_root_dir']
+    output_root_dir = config['output_root_dir']
 
     TF_FILE = 'aws.tf.' + deployment_id
     TF_STATE_FILE = 'aws.tfstate.' + deployment_id
@@ -127,6 +215,8 @@ def generate_artifacts(filter_config):
             os.remove(tf_state_path)
         except OSError, e:
             print ("Error: %s - %s." % (e.filename,e.strerror))
+
+    existing_tfstate = TFSTATE_SKELETON
 
     tf_all = ""
     for resource in resources:
@@ -169,16 +259,16 @@ def generate_artifacts(filter_config):
         if tf_minus_tfstate:
             print("Found items in tf not in tfstate.  They will be created")
             print("tf - tfstate = ", tf_minus_tfstate)
+        
+        # get the raw response mapped to module path: [root]
+        tfstate = subprocess.check_output(cmd)
 
-        # Finally write tfstate to file
-        if not os.path.exists(tf_state_path):
-            with open(tf_state_path, 'w') as f:
-                f.write(tfstate)
-        else:
-            cmd = cmd +  ["--overwrite","--merge", tf_state_path ]
-            tfstate = subprocess.check_output(cmd)
+        existing_tfstate = update_tfstate(json.loads(tfstate), existing_tfstate, config['module_map'])
 
-        print("")
+    # Finally write tf and tfstate files
+    with open(tf_state_path, 'w') as f:
+        f.write(json.dumps(existing_tfstate, sort_keys=True,
+                  indent=4, separators=(',', ': ')))
     
     with open(tf_path, 'w') as f:
         f.write(tf_all)
@@ -202,6 +292,9 @@ def main():
     parser.add_argument('--filter-config-file',
                        default="filter-config.yml",
                        help='see example at http://github.com/kbroughton/terraforming.git/filter-config.yml')
+    parser.add_argument('--module-map',
+                       default="module-map.yml",
+                       help='see example at http://github.com/kbroughton/terraforming.git/module-map.yml')
     parser.add_argument('--tf-source',
                        default=None,
                        help='file or dir with .tf files used as source instead of terraforming against provider')
@@ -214,19 +307,25 @@ def main():
 
 
     filter_config = {}
+    config = {}
     # set default config values
-    filter_config['resources'] = resources
+    config['resources'] = resources
 
     with open(args.filter_config_file, 'r') as f:
-        loaded_config = yaml.safe_load(f)['filter_config']
-        print("loaded_config", loaded_config)
-        filter_config.update(loaded_config)
+        filter_config = yaml.safe_load(f)
+        print("loaded_filter_config", filter_config)
+        config.update(filter_config)
+
+    with open(args.module_map, 'r') as f:
+        module_map = yaml.safe_load(f)
+        print("loaded_module_map", module_map)
+        config.update(module_map)
 
     output_root_dir = os.path.dirname(args.filter_config_file)
-    filter_config['output_root_dir'] = output_root_dir
+    config['output_root_dir'] = output_root_dir
 
-    print("filter_config", filter_config)
-    generate_artifacts(filter_config)
+    print("config", config)
+    generate_artifacts(config)
 
 
 if __name__ == '__main__':
@@ -243,3 +342,5 @@ if __name__ == '__main__':
 # rt vpc_id, tags
 # rta vpc_id, tags
 # sg vpc_id, tags
+
+
