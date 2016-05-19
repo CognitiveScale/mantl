@@ -1,8 +1,47 @@
 ---
+
+- name: make the cert directories
+  sudo: yes
+  file: 
+    state: directory
+    dest: "{{ item }}"
+  with_items:
+    - /private_certs
+    - /public_certs
+
+- name: copy certs to /public_certs
+  sudo: yes
+  copy:
+    src: "{{ item.src }}"
+    dest: "/public_certs/{{ item.dest }}"
+    owner: root
+  with_items: 
+    - { src: "ssl/public_certs/wildcard.c1.io.intermediate.cert.pem", dest: "ca.cert.pem" }
+    - { src: "ssl/public_certs/wildcard.c1.io.cert.pem", dest: "container.cert.pem" }
+
+- name: copy ca cert to /public_certs
+  sudo: yes
+  copy:
+    src: "{{ item.src }}"
+    dest: "/public_certs/{{ item.dest }}"
+    owner: root
+  with_items:
+    - { src: "ssl/cacert.pem", dest: "mantl.ca.cert.pem" }
+
+- name: copy private keys and concatenated certs to /private_certs
+  sudo: yes
+  copy:
+    src: "{{ item.src }}"
+    dest: "/private_certs/{{ item.dest }}"
+    owner: root
+  with_items:
+    - { src: "ssl/private_certs/wildcard.c1.io.key.pem", dest: "container.key.pem" }
+
 - name: deploy root ca
   sudo: yes
   copy:
     src: "{{ item.src }}"
+<<<<<<< HEAD
     dest: "{{ item.dest }}"
     owner: root
   with_items:
@@ -16,5 +55,12 @@
       dest: /etc/pki/tls/certs/host.cert
     - src: ssl/private/host.key.pem
       dest: /etc/pki/tls/private/host.key
+=======
+    dest: "/etc/pki/ca-trust/source/anchors/{{ item.dest }}"
+    owner: root
+  with_items:
+    - { src: "ssl/cacert.pem", dest: "mantl.ca.cert.pem" }
+    - { src: "ssl/public_certs/wildcard.c1.io.intermediate.cert.pem", dest: "wildcard.c1.io.ca.cert.pem" }
+>>>>>>> c8731e2... add support for official wildcard certs
   notify:
     - update-ca-trust

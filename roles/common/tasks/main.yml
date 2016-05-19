@@ -140,5 +140,7 @@
 
 - include: users.yml
 - include: ssl.yml
+  tags:
+    - ssl
 - include: ssh.yml
 - include: fail2ban.yml
