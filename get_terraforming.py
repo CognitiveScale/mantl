@@ -263,8 +263,8 @@ def generate_artifacts(config):
         # get the raw response mapped to module path: [root]
         tfstate = subprocess.check_output(cmd)
 
-        existing_tfstate = update_tfstate(json.loads(tfstate), existing_tfstate, config['module_map'])
-
+        if tfstate:
+            existing_tfstate = update_tfstate(json.loads(tfstate), existing_tfstate, config['module_map'])
     # Finally write tf and tfstate files
     with open(tf_state_path, 'w') as f:
         f.write(json.dumps(existing_tfstate, sort_keys=True,
