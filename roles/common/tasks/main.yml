@@ -139,5 +139,6 @@
     - bootstrap
 
 - include: users.yml
+
 - include: ssh.yml
 - include: fail2ban.yml
