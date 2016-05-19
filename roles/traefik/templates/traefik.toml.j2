@@ -1,13 +1,15 @@
+# {{ansible_managed}}
+
 port = ":80"
 graceTimeOut = 10
 logLevel = "{{ traefik_loglevel }}"
 
-{% if traefik_access_log_path %}
-accessLogsFile = "/var/log/traefik/access.log"
+{% if traefik_log_path %}
+accessLogsFile = "{{ traefik_access_log_path }}"
 {% endif %}
 
 {% if traefik_access_log_path %}
-traefikLogsFile = "/var/log/traefik/traefik.log"
+traefikLogsFile = "{{traefik_log_path}}"
 {% endif %}
 
 {% if traefik_routed_cert_path %}
