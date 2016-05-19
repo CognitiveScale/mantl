@@ -25,6 +25,7 @@ variable "kubeworker_count" {default = "0"}
 variable "worker_iam_profile" {default = "" }
 variable "worker_type" {default = "m3.medium"}
 variable "worker_volume_size" {default = "20"} # size is in gigabytes
+varialbe "use_elastic_ips" {default = "0"}
 
 resource "aws_vpc" "main" {
   cidr_block = "${var.network_ipv4}"
