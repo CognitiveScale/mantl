@@ -6,11 +6,6 @@ resource "aws_security_group" "control" {
   description = "Allow inbound traffic for control nodes"
   vpc_id = "${var.vpc_id}"
 
-  tags {
-    Name = "${var.long_name}-control"
-    deployment_id_tag = "${var.deployment_id_tag}"
-  }
-
   ingress { # SSH
     from_port = 22
     to_port = 22
@@ -60,11 +55,6 @@ resource "aws_security_group" "ui" {
   description = "Allow inbound traffic for Mantl UI"
   vpc_id = "${var.vpc_id}"
 
-  tags {
-    Name = "${var.long_name}-ui"
-    deployment_id_tag = "${var.deployment_id_tag}"
-  }
-
   ingress { # HTTP
     from_port = 80
     to_port = 80
@@ -92,11 +82,6 @@ resource "aws_security_group" "edge" {
   description = "Allow inbound traffic for edge routing"
   vpc_id = "${var.vpc_id}"
 
-  tags {
-    Name = "${var.long_name}-edge"
-    deployment_id_tag = "${var.deployment_id_tag}"
-  }
-
   ingress { # SSH
     from_port = 22
     to_port = 22
@@ -123,11 +108,6 @@ resource "aws_security_group" "worker" {
   name = "${var.short_name}-worker"
   description = "Allow inbound traffic for worker nodes"
   vpc_id = "${var.vpc_id}"
-
-  tags {
-    Name = "${var.long_name}-worker"
-    deployment_id_tag = "${var.deployment_id_tag}"
-  }
 
   ingress { # SSH
     from_port = 22
@@ -167,27 +147,6 @@ resource "aws_security_group" "worker" {
   ingress { # Consul
     from_port = 8500
     to_port = 8500
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress { # Vault
-    from_port = 8200
-    to_port = 8200
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress { # Vault
-    from_port = 8200
-    to_port = 8200
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-    ingress { # Mongodb
-    from_port = 27017
-    to_port = 27017
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
