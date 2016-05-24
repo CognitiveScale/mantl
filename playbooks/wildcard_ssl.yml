@@ -11,11 +11,15 @@
     - /public_certs
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 <<<<<<< HEAD
 - name: copy container keys and certs into place
 =======
 - name: copy CA cert into place
 >>>>>>> kbroughton/c12ecustom
+=======
+- name: copy CA cert into place
+>>>>>>> Stashed changes
 =======
 - name: copy CA cert into place
 >>>>>>> Stashed changes
@@ -28,15 +32,21 @@
     - src: ../ssl/cacert.pem
       dest: /public_certs/ca.cert.pem
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 <<<<<<< HEAD
     - src: ../ssl/certs/host.cert.pem
 =======
+=======
+>>>>>>> Stashed changes
 
 - name: copy container keys and certs into place
   sudo: yes
   shell: cp "{{ item.src }}" "{{ item.dest }}"
   with_items:
     - src: /etc/pki/mantl/cert
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
       dest: /public_certs/container.cert.pem
     - src: /etc/pki/mantl/key
@@ -111,6 +121,7 @@
     - "{{ wildcard_certs_dir }}/private_certs/*"
 
 - name: on edge nodes make traefik owner of /private_certs
+<<<<<<< Updated upstream
   sudo: yes
 <<<<<<< Updated upstream
   copy:
@@ -151,14 +162,19 @@
 =======
 - name: copy wildcard private keys to /etc/pki/tls/private
 >>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
   sudo: yes
-  copy:
-    src: "{{ item }}"
-    dest: "/etc/pki/tls/private/{{ item | basename }}"
+  file:
+    state: file
+    dest: "{{ item }}"
+    owner: traefik
     mode: 0400
   with_fileglob:
-    - "{{ wildcard_certs_dir }}/private_certs/*"
+    - "/private_certs/*"
+  when: inventory_hostname in groups['role=edge']
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 =======
 - name: on edge nodes make traefik owner of /private_certs
@@ -172,6 +188,8 @@
     - "/private_certs/*"
   when: inventory_hostname in groups['role=edge']
 
+=======
+>>>>>>> Stashed changes
 - name: copy wildcard private keys to /etc/pki/tls/private
   sudo: yes
   copy:
@@ -181,6 +199,9 @@
   with_fileglob:
     - "{{ wildcard_certs_dir }}/private_certs/*"
 
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 # - name: copy wildcard private keys to /etc/pki/CA/
@@ -194,7 +215,10 @@
 #     - "{{ wildcard_certs_dir }}/private_certs/*"
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 >>>>>>> kbroughton/c12ecustom
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 - name: update-ca-trust
