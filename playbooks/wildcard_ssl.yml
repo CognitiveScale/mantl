@@ -10,11 +10,15 @@
     - /private_certs
     - /public_certs
 
+<<<<<<< Updated upstream
 <<<<<<< HEAD
 - name: copy container keys and certs into place
 =======
 - name: copy CA cert into place
 >>>>>>> kbroughton/c12ecustom
+=======
+- name: copy CA cert into place
+>>>>>>> Stashed changes
   sudo: yes
   copy:
     src: "{{ item.src }}"
@@ -23,10 +27,19 @@
   with_items:
     - src: ../ssl/cacert.pem
       dest: /public_certs/ca.cert.pem
+<<<<<<< Updated upstream
 <<<<<<< HEAD
     - src: ../ssl/certs/host.cert.pem
+=======
+
+- name: copy container keys and certs into place
+  sudo: yes
+  shell: cp "{{ item.src }}" "{{ item.dest }}"
+  with_items:
+    - src: /etc/pki/mantl/cert
+>>>>>>> Stashed changes
       dest: /public_certs/container.cert.pem
-    - src: ../ssl/private/host.key.pem
+    - src: /etc/pki/mantl/key
       dest: /private_certs/container.key.pem
 
 - name: copy public wildcard certs to /public_certs
@@ -97,8 +110,9 @@
   with_fileglob:
     - "{{ wildcard_certs_dir }}/private_certs/*"
 
-- name: copy wildcard private keys to /etc/pki/tls/private
+- name: on edge nodes make traefik owner of /private_certs
   sudo: yes
+<<<<<<< Updated upstream
   copy:
     src: "{{ item }}"
     dest: "/etc/pki/tls/private/{{ item | basename }}"
@@ -120,21 +134,32 @@
     dest: "/private_certs/{{ item | basename }}"
     owner: root
 >>>>>>> kbroughton/c12ecustom
+=======
+  file:
+    state: file
+    dest: "{{ item }}"
+    owner: traefik
+>>>>>>> Stashed changes
     mode: 0400
   with_fileglob:
-    - "{{ wildcard_certs_dir }}/private_certs/*"
+    - "/private_certs/*"
+  when: inventory_hostname in groups['role=edge']
 
+<<<<<<< Updated upstream
 <<<<<<< HEAD
 - name: copy wildcard private keys to /etc/pki/CA/
+=======
+- name: copy wildcard private keys to /etc/pki/tls/private
+>>>>>>> Stashed changes
   sudo: yes
   copy:
     src: "{{ item }}"
-    dest: "/etc/pki/CA/{{ item | basename }}"
-    owner: root
+    dest: "/etc/pki/tls/private/{{ item | basename }}"
     mode: 0400
   with_fileglob:
     - "{{ wildcard_certs_dir }}/private_certs/*"
 
+<<<<<<< Updated upstream
 =======
 - name: on edge nodes make traefik owner of /private_certs
   sudo: yes
@@ -156,6 +181,8 @@
   with_fileglob:
     - "{{ wildcard_certs_dir }}/private_certs/*"
 
+=======
+>>>>>>> Stashed changes
 # - name: copy wildcard private keys to /etc/pki/CA/
 #   sudo: yes
 #   copy:
@@ -166,6 +193,9 @@
 #   with_fileglob:
 #     - "{{ wildcard_certs_dir }}/private_certs/*"
 
+<<<<<<< Updated upstream
 >>>>>>> kbroughton/c12ecustom
+=======
+>>>>>>> Stashed changes
 - name: update-ca-trust
   shell: update-ca-trust
