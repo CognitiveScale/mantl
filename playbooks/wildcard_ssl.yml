@@ -10,7 +10,11 @@
     - /private_certs
     - /public_certs
 
+<<<<<<< HEAD
 - name: copy container keys and certs into place
+=======
+- name: copy CA cert into place
+>>>>>>> kbroughton/c12ecustom
   sudo: yes
   copy:
     src: "{{ item.src }}"
@@ -19,6 +23,7 @@
   with_items:
     - src: ../ssl/cacert.pem
       dest: /public_certs/ca.cert.pem
+<<<<<<< HEAD
     - src: ../ssl/certs/host.cert.pem
       dest: /public_certs/container.cert.pem
     - src: ../ssl/private/host.key.pem
@@ -49,11 +54,39 @@
   copy:
     src: "{{ item }}"
     dest: "/etc/pki/ca-trust/source/anchors/{{ item | basename }}"
+=======
+
+- name: copy container keys and certs into place
+  sudo: yes
+  shell: cp "{{ item.src }}" "{{ item.dest }}"
+  with_items:
+    - src: /etc/pki/mantl/cert
+      dest: /public_certs/container.cert.pem
+    - src: /etc/pki/mantl/key
+      dest: /private_certs/container.key.pem
+
+- name: copy public wildcard certs to /public_certs
+  sudo: yes
+  copy:
+    src: "{{ item }}"
+    dest: "/public_certs/{{ item | basename }}"
+    owner: root
+    mode: 0644
+  with_fileglob: 
+    - "{{ wildcard_certs_dir }}/public_certs/*"
+
+- name: copy public wildcard certs to /etc/pki/CA/
+  sudo: yes
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/pki/CA/{{ item | basename }}"
+>>>>>>> kbroughton/c12ecustom
     owner: root
     mode: 0644
   with_fileglob:
     - "{{ wildcard_certs_dir }}/public_certs/*"
 
+<<<<<<< HEAD
 - name: copy wildcard private keys to /private_certs
   sudo: yes
   copy:
@@ -69,10 +102,29 @@
   copy:
     src: "{{ item }}"
     dest: "/etc/pki/tls/private/{{ item | basename }}"
+=======
+- name: copy public wildcard certs to truststore /etc/pki/ca-trust/source/anchors/
+  sudo: yes
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/pki/ca-trust/source/anchors/{{ item | basename }}"
+    owner: root
+    mode: 0644
+  with_fileglob:
+    - "{{ wildcard_certs_dir }}/public_certs/*"
+
+- name: copy wildcard private keys to /private_certs
+  sudo: yes
+  copy:
+    src: "{{ item }}"
+    dest: "/private_certs/{{ item | basename }}"
+    owner: root
+>>>>>>> kbroughton/c12ecustom
     mode: 0400
   with_fileglob:
     - "{{ wildcard_certs_dir }}/private_certs/*"
 
+<<<<<<< HEAD
 - name: copy wildcard private keys to /etc/pki/CA/
   sudo: yes
   copy:
@@ -83,5 +135,37 @@
   with_fileglob:
     - "{{ wildcard_certs_dir }}/private_certs/*"
 
+=======
+- name: on edge nodes make traefik owner of /private_certs
+  sudo: yes
+  file:
+    state: file
+    dest: "{{ item }}"
+    owner: traefik
+    mode: 0400
+  with_fileglob:
+    - "/private_certs/*"
+  when: inventory_hostname in groups['role=edge']
+
+- name: copy wildcard private keys to /etc/pki/tls/private
+  sudo: yes
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/pki/tls/private/{{ item | basename }}"
+    mode: 0400
+  with_fileglob:
+    - "{{ wildcard_certs_dir }}/private_certs/*"
+
+# - name: copy wildcard private keys to /etc/pki/CA/
+#   sudo: yes
+#   copy:
+#     src: "{{ item }}"
+#     dest: "/etc/pki/CA/{{ item | basename }}"
+#     owner: root
+#     mode: 0400
+#   with_fileglob:
+#     - "{{ wildcard_certs_dir }}/private_certs/*"
+
+>>>>>>> kbroughton/c12ecustom
 - name: update-ca-trust
   shell: update-ca-trust

@@ -13,6 +13,9 @@ ssl/.rnd
 **/*.tfstate*
 **/.terraform
 
+**/*.tfvars.json
+**/*.tfvars
+
 # downloaded by playbook
 addons/library/
 library/lvg.py
